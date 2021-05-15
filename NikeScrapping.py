@@ -342,5 +342,13 @@ def getSize(link):
     return sizes
 
 if __name__ == '__main__':
+    # starting time
+    start = time.time()
     NikeShoesData("https://www.nike.com/w/mens-shoes-nik1zy7ok",'Mens Shoes & Sneakers')
     
+    # end time
+    end = time.time()
+
+    t=float("{:.2f}".format((end - start)/60))
+    # total time taken
+    print(f"Time taken:{t} Minutes")
