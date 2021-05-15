@@ -87,11 +87,11 @@ class NikeShoesData():
             
             self.getProduct(prod_link,prod_status)
             
-            # just to put limit on getting shoes for testing purpose
-            if(i>=0):
-                break
-            else:
-                i+=1
+            # # just to put limit on getting shoes for testing purpose
+            # if(i>=0):
+            #     break
+            # else:
+            #     i+=1
                 
             self.browser.close()
         
@@ -333,7 +333,7 @@ def getSize(link):
                 print('---------PopUp Closed--------')
             except:
                 match=True
-                print('---------PopUp Couldn`t Closed--------')
+                print('---------PopUp Not Found--------')
             
     # Now that the page is fully scrolled, grab the source code.
     source_data = browser.page_source
@@ -353,7 +353,7 @@ def getSize(link):
 
 def saveDatacsv():
     global df
-    df.to_csv("Result.csv")
+    df.to_csv("All Categories Data.csv")
     print('file Saved SuccessFully!!')
     
 def getCaetgories(home_link):
@@ -372,12 +372,22 @@ def getCaetgories(home_link):
     
 
 if __name__ == '__main__':
+    # starting time
+    start = time.time()
+    
     shoes_home_link='https://www.nike.com/w/mens-shoes-nik1zy7ok'
     link_dic=getCaetgories(shoes_home_link)
     
     for name,link in link_dic.items():
         print(name+':'+link)
         NikeShoesData(link,name)
-        
+    
+    # end time
+    end = time.time()
+
+    t=float("{:.2f}".format((end - start)/60))
+    # total time taken
+    print(f"Time taken:{t} Minutes")
+     
     saveDatacsv()
     
