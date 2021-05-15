@@ -48,12 +48,12 @@ class NikeShoesData():
          
         while(match==False):
             lastCount = lenOfPage
-            time.sleep(3)
+            # time.sleep(3)
             lenOfPage = self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
             if lastCount==lenOfPage:
                 try:
                     print('---------PopUpcheck--------')
-                    WebDriverWait(self.browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+                    WebDriverWait(self.browser, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
                     match=False
                     print('---------PopUp Closed--------')
                 except:
@@ -323,12 +323,12 @@ def getSize(link):
     match=False
     while(match==False):
         lastCount = lenOfPage
-        time.sleep(3)
+        # time.sleep(3)
         lenOfPage = browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
         if lastCount==lenOfPage:
             try:
                 print('---------PopUpcheck--------')
-                WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+                WebDriverWait(browser, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
                 match=False
                 print('---------PopUp Closed--------')
             except:
