@@ -9,13 +9,19 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import pandas as pd
 
+
+
+global df
+df=pd.DataFrame(columns = ['Title', 'Style Code', 'Category', 'Size', 'Description', 'Colors', 'Status', 'Rating', 'Picture', 'Price','Link'])
+
+
 class NikeShoesData():
     
     def __init__(self,link=None,category='General'):
         if(link is not None):
             
-            self.df=pd.DataFrame(columns = ['Title', 'Style Code', 'Category', 'Size', 'Description', 'Colors', 'Status', 'Rating', 'Picture', 'Price','Link'])
-            
+            global df
+            self.df=df
             self.link=link
             self.categ=category
             
@@ -80,11 +86,14 @@ class NikeShoesData():
             # print(prod_status)
             
             self.getProduct(prod_link,prod_status)
-            # if(i>=2):
-            #     break
-            # else:
-            #     i+=1
-        self.saveDatacsv()
+            
+            # just to put limit on getting shoes for testing purpose
+            if(i>=0):
+                break
+            else:
+                i+=1
+                
+            self.browser.close()
         
     def getProduct(self,link,prod_status):
         '''
@@ -167,13 +176,12 @@ class NikeShoesData():
         content=page.content
         prod_soup=bs(content,'html.parser')
         
-        avail_size=''
         
-        # size_container=prod_soup.find("div",attrs={ "class" : "prod_soup" })
-        # # .findAll("div",attrs={ "class" : "mt2-sm css-1j3x2vp" })  #mt2-sm css-1j3x2vp
-        # print(size_container)
-        # return
-    
+        try:
+            avail_size=getSize(link)
+        except:
+            avail_size='N/A'
+            
         title=prod_soup.find("h1",attrs={ "id" : "pdp_product_title" })
         title=title.text
         
@@ -301,11 +309,75 @@ class NikeShoesData():
         # print('------Status:',status)
     
     
-    def saveDatacsv(self):
-        self.df.to_csv("Men's Shoes & Sneakers.csv")
-        print('file Saved SuccessFully!!')
+    
+def getSize(link):
+    # I used Firefox; you can use whichever browser you like.
+    browser = webdriver.Chrome(executable_path="H:\Scrapping\FlipKart_Scraping\chromedriver.exe")
 
+    # Tell Selenium to get the URL you're interested in.
+    browser.get(link)
+
+
+    # Selenium script to scroll to the bottom, wait 3 seconds for the next batch of data to load, then continue scrolling.  It will continue to do this until the page stops loading new data.
+    lenOfPage = browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+    match=False
+    while(match==False):
+        lastCount = lenOfPage
+        time.sleep(3)
+        lenOfPage = browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+        if lastCount==lenOfPage:
+            try:
+                print('---------PopUpcheck--------')
+                WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+                match=False
+                print('---------PopUp Closed--------')
+            except:
+                match=True
+                print('---------PopUp Couldn`t Closed--------')
+            
+    # Now that the page is fully scrolled, grab the source code.
+    source_data = browser.page_source
+
+    # Throw your source into BeautifulSoup and start parsing!
+    soup = bs(source_data,features="html.parser")
+    size= soup.find_all('label', class_ = 'css-xf3ahq')
+    # print(size)
+    sizes=[]
+    for s in size:
+        sizes.append(s.text)
+    browser.close()
+    return sizes
+     
+            
+ 
+
+def saveDatacsv():
+    global df
+    df.to_csv("Result.csv")
+    print('file Saved SuccessFully!!')
+    
+def getCaetgories(home_link):
+    link_dic={}
+    page=requests.get(home_link)
+    content=page.content
+    soup=bs(content,'html.parser')
+    
+    bar=soup.findAll("a",attrs={ "data-group-type" : "category" })
+    for catg in bar:
+        name=catg.text
+        link=catg['href']
+        link_dic[name]=link
+    
+    return link_dic
+    
 
 if __name__ == '__main__':
-    NikeShoesData("https://www.nike.com/w/mens-shoes-nik1zy7ok",'Men`s Shoes & Sneakers')
+    shoes_home_link='https://www.nike.com/w/mens-shoes-nik1zy7ok'
+    link_dic=getCaetgories(shoes_home_link)
+    
+    for name,link in link_dic.items():
+        print(name+':'+link)
+        NikeShoesData(link,name)
+        
+    saveDatacsv()
     
