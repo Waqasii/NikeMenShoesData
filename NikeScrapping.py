@@ -42,12 +42,11 @@ class NikeShoesData():
          
         while(match==False):
             lastCount = lenOfPage
-            time.sleep(3)
             lenOfPage = self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
             if lastCount==lenOfPage:
                 try:
                     print('---------PopUpcheck--------')
-                    WebDriverWait(self.browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+                    WebDriverWait(self.browser, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
                     match=False
                     print('---------PopUp Closed--------')
                 except:
@@ -167,12 +166,10 @@ class NikeShoesData():
         content=page.content
         prod_soup=bs(content,'html.parser')
         
-        avail_size=''
-        
-        # size_container=prod_soup.find("div",attrs={ "class" : "prod_soup" })
-        # # .findAll("div",attrs={ "class" : "mt2-sm css-1j3x2vp" })  #mt2-sm css-1j3x2vp
-        # print(size_container)
-        # return
+        try:
+            avail_size=getSize(link)
+        except:
+            avail_size='N/A'
     
         title=prod_soup.find("h1",attrs={ "id" : "pdp_product_title" })
         title=title.text
@@ -302,10 +299,48 @@ class NikeShoesData():
     
     
     def saveDatacsv(self):
-        self.df.to_csv("Men's Shoes & Sneakers.csv")
+        self.df.to_csv(self.categ+".csv")
         print('file Saved SuccessFully!!')
 
 
+def getSize(link):
+    # I used Firefox; you can use whichever browser you like.
+    browser = webdriver.Chrome(executable_path="H:\Scrapping\FlipKart_Scraping\chromedriver.exe")
+
+    # Tell Selenium to get the URL you're interested in.
+    browser.get(link)
+
+
+    # Selenium script to scroll to the bottom, wait 3 seconds for the next batch of data to load, then continue scrolling.  It will continue to do this until the page stops loading new data.
+    lenOfPage = browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+    match=False
+    while(match==False):
+        lastCount = lenOfPage
+        # time.sleep(3)
+        lenOfPage = browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+        if lastCount==lenOfPage:
+            try:
+                print('---------PopUpcheck--------')
+                WebDriverWait(browser, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+                match=False
+                print('---------PopUp Closed--------')
+            except:
+                match=True
+                print('---------PopUp Couldn`t Closed--------')
+            
+    # Now that the page is fully scrolled, grab the source code.
+    source_data = browser.page_source
+
+    # Throw your source into BeautifulSoup and start parsing!
+    soup = bs(source_data,features="html.parser")
+    size= soup.find_all('label', class_ = 'css-xf3ahq')
+    # print(size)
+    sizes=[]
+    for s in size:
+        sizes.append(s.text)
+    browser.close()
+    return sizes
+
 if __name__ == '__main__':
-    NikeShoesData("https://www.nike.com/w/mens-shoes-nik1zy7ok",'Men`s Shoes & Sneakers')
+    NikeShoesData("https://www.nike.com/w/mens-shoes-nik1zy7ok",'Mens Shoes & Sneakers')
     
