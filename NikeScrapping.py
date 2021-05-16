@@ -87,13 +87,14 @@ class NikeShoesData():
             
             self.getProduct(prod_link,prod_status)
             
-            # # just to put limit on getting shoes for testing purpose
-            # if(i>=0):
-            #     break
-            # else:
-            #     i+=1
+            # just to put limit on getting shoes for testing purpose
+            if(i>=0):
+                break
+            else:
+                i+=1
                 
-            self.browser.close()
+        self.browser.close()
+        
         
     def getProduct(self,link,prod_status):
         '''
