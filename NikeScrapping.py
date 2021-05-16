@@ -41,12 +41,17 @@ class NikeShoesData():
         # so it will handle both condition
          
         while(match==False):
+            time.sleep(2)
             lastCount = lenOfPage
             lenOfPage = self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
             if lastCount==lenOfPage:
                 try:
                     print('---------PopUpcheck--------')
-                    WebDriverWait(self.browser, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+                    try:
+                        WebDriverWait(self.browser, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+                    except:
+                        WebDriverWait(self.browser, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-var="CloseBtn"]'))).click()
+                        
                     match=False
                     print('---------PopUp Closed--------')
                 except:
@@ -77,13 +82,16 @@ class NikeShoesData():
                 
             # print(prod_link)
             # print(prod_status)
-            
-            self.getProduct(prod_link,prod_status)
+            try:
+                self.getProduct(prod_link,prod_status)
+                self.saveDatacsv()
+            except:
+                print(f'**********************\nError!\nLink:{prod_link}\nStaus{prod_status}')
+
             # if(i>=2):
             #     break
             # else:
             #     i+=1
-        self.saveDatacsv()
         
     def getProduct(self,link,prod_status):
         '''
@@ -299,6 +307,8 @@ class NikeShoesData():
     
     
     def saveDatacsv(self):
+        # Considering certain columns for dropping duplicates
+        self.df.drop_duplicates(subset=['Link'])
         self.df.to_csv(self.categ+".csv")
         print('file Saved SuccessFully!!')
 
