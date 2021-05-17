@@ -84,14 +84,17 @@ class NikeShoesData():
                 
             # print(prod_link)
             # print(prod_status)
-            
-            self.getProduct(prod_link,prod_status)
-            
-            # just to put limit on getting shoes for testing purpose
-            if(i>=0):
-                break
-            else:
-                i+=1
+            try:
+                self.getProduct(prod_link,prod_status)
+                saveDatacsv()
+            except:
+                print('Error in getting products')
+                
+            # # just to put limit on getting shoes for testing purpose
+            # if(i>=0):
+            #     break
+            # else:
+            #     i+=1
                 
         self.browser.close()
         
