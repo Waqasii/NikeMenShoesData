@@ -8,13 +8,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import pandas as pd
+from selenium.webdriver import ActionChains
+
 
 class NikeShoesData():
     
     def __init__(self,link=None,category='General'):
         if(link is not None):
             
-            self.df=pd.DataFrame(columns = ['Title', 'Style Code', 'Category', 'Size', 'Description', 'Colors', 'Status', 'Rating', 'Picture', 'Price','Link'])
+            self.df=pd.DataFrame(columns = ['Title', 'Style Code', 'Category', 'Size', 'Description', 'Colors', 'Status', 'Rating', 'Picture', 'Price','Link','Review Dates'])
             
             self.link=link
             self.categ=category
@@ -88,10 +90,10 @@ class NikeShoesData():
             except:
                 print(f'**********************\nError!\nLink:{prod_link}\nStaus{prod_status}')
 
-            # if(i>=2):
-            #     break
-            # else:
-            #     i+=1
+            if(i>=2):
+                break
+            else:
+                i+=1
         
     def getProduct(self,link,prod_status):
         '''
@@ -153,6 +155,8 @@ class NikeShoesData():
         row.append(picture)
         row.append(price)
         row.append(link)
+        row.append('N/A')
+        
         
         self.df.loc[len(self.df)] = row
         
@@ -175,7 +179,7 @@ class NikeShoesData():
         prod_soup=bs(content,'html.parser')
         
         try:
-            avail_size=getSize(link)
+            avail_size,review_dates=getSize(link)
         except:
             avail_size='N/A'
     
@@ -225,6 +229,7 @@ class NikeShoesData():
         row.append(picture)
         row.append(price)
         row.append(link)
+        row.append(review_dates)
         
         self.df.loc[len(self.df)] = row
         
@@ -293,6 +298,8 @@ class NikeShoesData():
         row.append(picture)
         row.append(price)
         row.append(link)
+        row.append('N/A')
+        
         self.df.loc[len(self.df)] = row
 
         # print('------Title:',title)
@@ -316,11 +323,10 @@ class NikeShoesData():
 def getSize(link):
     # I used Firefox; you can use whichever browser you like.
     browser = webdriver.Chrome(executable_path="H:\Scrapping\FlipKart_Scraping\chromedriver.exe")
-
+    
     # Tell Selenium to get the URL you're interested in.
     browser.get(link)
-
-
+    
     # Selenium script to scroll to the bottom, wait 3 seconds for the next batch of data to load, then continue scrolling.  It will continue to do this until the page stops loading new data.
     lenOfPage = browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
     match=False
@@ -328,7 +334,8 @@ def getSize(link):
         lastCount = lenOfPage
         # time.sleep(3)
         lenOfPage = browser.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
-        if lastCount==lenOfPage:
+        if lastCount==lenOfPage:  
+            
             try:
                 print('---------PopUpcheck--------')
                 WebDriverWait(browser, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
@@ -337,7 +344,16 @@ def getSize(link):
             except:
                 match=True
                 print('---------PopUp Couldn`t Closed--------')
+        
             
+            
+        
+    
+    
+    
+    review_dates=getReviewsDate(browser)
+    
+           
     # Now that the page is fully scrolled, grab the source code.
     source_data = browser.page_source
 
@@ -348,13 +364,87 @@ def getSize(link):
     sizes=[]
     for s in size:
         sizes.append(s.text)
+    
+    print('Sizes:',sizes) 
     browser.close()
-    return sizes
+    
+    
+    return sizes,review_dates
+
+
+
+def getReviewsDate(browser):
+    while(True):
+       try:
+        #    button = browser.find_element_by_xpath("//button[@class='ncss-btn-primary-light mod-u-underline css-1nglku6']")
+           
+           more_review_container = browser.find_element_by_xpath("//p[@class='mt10-sm mb10-sm']")
+           browser.execute_script("arguments[0].scrollIntoView()", more_review_container)
+           
+           
+           more_review_button = browser.find_element_by_xpath("//button[@data-test='more-reviews']")
+           browser.implicitly_wait(5)
+           ActionChains(browser).move_to_element(more_review_button).click(more_review_button).perform()
+           
+           print('More Reviews Button  Clicked')
+           if(browser.find_element_by_xpath("//div[@id= 'TT3rShowMore']")):
+               break
+           
+       except:
+           button = browser.find_element_by_xpath("//div[@class= 'css-1n9iiad']")
+           browser.execute_script("arguments[0].scrollIntoView()", button)
+           # print('Not Clicked')
+           try:
+               browser.implicitly_wait(10)
+               ActionChains(browser).move_to_element(button).click(button).perform()
+               print('clicked on Review Button')
+           except:
+               # button.location_once_scrolled_into_view
+               # print("Couldn't Click on Any")
+               print('Checking Again')
+    
+    
+    # Load More Reviews
+    while(True):
+        try:
+            load_more = browser.find_element_by_xpath("//div[@id= 'TT3rShowMore']")
+            browser.execute_script("arguments[0].scrollIntoView()", load_more)
+            time.sleep(5)
+            # browser.implicitly_wait(10)
+            ActionChains(browser).move_to_element(load_more).click(load_more).perform()
+            print('Click on Load  More Review Button')
+            # browser.implicitly_wait(40)
+            
+        except:
+            print('Reviews Loading Complete!')
+            break
+            
+        
+    # Now that the page is fully scrolled, grab the source code.
+    source_data = browser.page_source
+
+    # Throw your source into BeautifulSoup and start parsing!
+    soup = bs(source_data,features="html.parser")
+    dates_container= soup.find_all('div',attrs={ "itemprop" : "dateCreated" })
+    print('Total Reviews:',len(dates_container))
+    
+    dates=[]
+    for date in dates_container:
+        dates.append(date.text)
+        print(date.text)
+        
+     
+    return dates    
+
 
 if __name__ == '__main__':
     # starting time
     start = time.time()
-    NikeShoesData("https://www.nike.com/w/mens-shoes-nik1zy7ok",'Mens Shoes & Sneakers')
+    # main link
+    # NikeShoesData("https://www.nike.com/w/mens-shoes-nik1zy7ok",'Mens Shoes & Sneakers')
+    
+    # just for testing purpose
+    NikeShoesData("https://www.nike.com/w/mens-skateboarding-shoes-8mfrfznik1zy7ok",'Mens Shoes & Sneakers')
     
     # end time
     end = time.time()
