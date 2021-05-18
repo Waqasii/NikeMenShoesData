@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
+import re
 
 def getSize(link):
     # I used Firefox; you can use whichever browser you like.
@@ -63,6 +64,27 @@ def getSize(link):
 
 
 def getReviewsDate(browser):
+    
+    # check if reviews availavle or not
+    source_data = browser.page_source
+
+    # Throw your source into BeautifulSoup and start parsing!
+    soup = bs(source_data,features="html.parser")
+    rev_heading= soup.find('summary',attrs={ "class" : "css-ov1ktg" })
+    rev_number=rev_heading.find('h3',attrs={ "class" : "css-xd87ek" })
+    number=rev_number.find('span').text
+    
+    # print(number)
+    number=(re.findall(r"\(\s*\+?(-?\d+)\s*\)", number)[0])
+    
+    if(int(number)<=0):
+        return 'N/A'
+        
+    
+    
+
+    print('Total Reviews:',len(dates_container))
+    
     while(True):
        try:
         #    button = browser.find_element_by_xpath("//button[@class='ncss-btn-primary-light mod-u-underline css-1nglku6']")

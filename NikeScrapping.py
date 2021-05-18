@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import pandas as pd
 from selenium.webdriver import ActionChains
+import re
 
 
 class NikeShoesData():
@@ -90,10 +91,10 @@ class NikeShoesData():
             except:
                 print(f'**********************\nError!\nLink:{prod_link}\nStaus{prod_status}')
 
-            if(i>=2):
-                break
-            else:
-                i+=1
+            # if(i>=2):
+            #     break
+            # else:
+            #     i+=1
         
     def getProduct(self,link,prod_status):
         '''
@@ -374,6 +375,23 @@ def getSize(link):
 
 
 def getReviewsDate(browser):
+    # check if reviews availavle or not
+    source_data = browser.page_source
+
+    # Throw your source into BeautifulSoup and start parsing!
+    soup = bs(source_data,features="html.parser")
+    rev_heading= soup.find('summary',attrs={ "class" : "css-ov1ktg" })
+    rev_number=rev_heading.find('h3',attrs={ "class" : "css-xd87ek" })
+    number=rev_number.find('span').text
+    
+    # print(number)
+    number=(re.findall(r"\(\s*\+?(-?\d+)\s*\)", number)[0])
+    
+    if(int(number)<=0):
+        print('Review Not Available')
+        return 'N/A'
+    
+    check=0
     while(True):
        try:
         #    button = browser.find_element_by_xpath("//button[@class='ncss-btn-primary-light mod-u-underline css-1nglku6']")
@@ -399,9 +417,12 @@ def getReviewsDate(browser):
                ActionChains(browser).move_to_element(button).click(button).perform()
                print('clicked on Review Button')
            except:
+               check+=1
                # button.location_once_scrolled_into_view
                # print("Couldn't Click on Any")
                print('Checking Again')
+               if(check==3):
+                   break
     
     
     # Load More Reviews
