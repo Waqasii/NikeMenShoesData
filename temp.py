@@ -83,7 +83,6 @@ def getReviewsDate(browser):
     
     
 
-    print('Total Reviews:',len(dates_container))
     
     while(True):
        try:
@@ -147,4 +146,4 @@ def getReviewsDate(browser):
      
     return dates    
 
-getSize('https://www.nike.com/t/air-max-excee-mens-shoe-MhJh6v/CD4165-003')
+getSize('https://www.nike.com/t/sb-blazer-low-gt-skate-shoe-yKeNdm/704939-005')

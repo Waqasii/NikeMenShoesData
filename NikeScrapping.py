@@ -391,6 +391,7 @@ def getReviewsDate(browser):
         print('Review Not Available')
         return 'N/A'
     
+    browser=removePopUp(browser)
     check=0
     while(True):
        try:
@@ -457,6 +458,14 @@ def getReviewsDate(browser):
      
     return dates    
 
+def removePopUp(browser):
+    try:
+        WebDriverWait(browser, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+    except:
+        print('PopUp not found')
+    
+    return browser
+    
 
 if __name__ == '__main__':
     # starting time
