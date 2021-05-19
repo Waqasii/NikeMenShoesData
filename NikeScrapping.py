@@ -351,9 +351,11 @@ def getSize(link):
         
     
     
-    
-    review_dates=getReviewsDate(browser)
-    
+    try:
+        review_dates=getReviewsDate(browser)
+    except:
+        print('Error in Getting Reviews!')
+        review_dates='N/A'
            
     # Now that the page is fully scrolled, grab the source code.
     source_data = browser.page_source
@@ -371,7 +373,6 @@ def getSize(link):
     
     
     return sizes,review_dates
-
 
 
 def getReviewsDate(browser):
@@ -393,6 +394,7 @@ def getReviewsDate(browser):
     
     browser=removePopUp(browser)
     check=0
+    click_rev=0
     while(True):
        try:
         #    button = browser.find_element_by_xpath("//button[@class='ncss-btn-primary-light mod-u-underline css-1nglku6']")
@@ -417,6 +419,9 @@ def getReviewsDate(browser):
                browser.implicitly_wait(10)
                ActionChains(browser).move_to_element(button).click(button).perform()
                print('clicked on Review Button')
+               click_rev+=1
+               if(click_rev>=3):
+                   break
            except:
                check+=1
                # button.location_once_scrolled_into_view
@@ -471,10 +476,10 @@ if __name__ == '__main__':
     # starting time
     start = time.time()
     # main link
-    # NikeShoesData("https://www.nike.com/w/mens-shoes-nik1zy7ok",'Mens Shoes & Sneakers')
+    NikeShoesData("https://www.nike.com/w/mens-shoes-nik1zy7ok",'Mens Shoes & Sneakers')
     
     # just for testing purpose
-    NikeShoesData("https://www.nike.com/w/mens-skateboarding-shoes-8mfrfznik1zy7ok",'Mens Shoes & Sneakers')
+    # NikeShoesData("https://www.nike.com/w/mens-skateboarding-shoes-8mfrfznik1zy7ok",'Mens Shoes & Sneakers')
     
     # end time
     end = time.time()
