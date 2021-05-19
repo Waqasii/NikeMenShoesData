@@ -412,8 +412,10 @@ def getReviewsDate(browser):
                break
            
        except:
-           button = browser.find_element_by_xpath("//div[@class= 'css-1n9iiad']")
-           browser.execute_script("arguments[0].scrollIntoView()", button)
+           button_div = browser.find_element_by_xpath("//div[@class= 'css-1n9iiad']")
+           browser.execute_script("arguments[0].scrollIntoView()", button_div)
+           
+           button = browser.find_element_by_xpath("//details[@data-test= 'reviewsAccordionClick']")
            # print('Not Clicked')
            try:
                browser.implicitly_wait(10)
@@ -424,8 +426,7 @@ def getReviewsDate(browser):
                    break
            except:
                check+=1
-               # button.location_once_scrolled_into_view
-               # print("Couldn't Click on Any")
+               
                print('Checking Again')
                if(check==3):
                    break

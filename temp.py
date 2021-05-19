@@ -40,9 +40,11 @@ def getSize(link):
         
     
     
-    
-    review_dates=getReviewsDate(browser)
-    
+    try:
+        review_dates=getReviewsDate(browser)
+    except:
+        print('Error in Getting Reviews!')
+        review_dates='N/A'
            
     # Now that the page is fully scrolled, grab the source code.
     source_data = browser.page_source
@@ -61,10 +63,7 @@ def getSize(link):
     
     return sizes,review_dates
 
-
-
 def getReviewsDate(browser):
-    
     # check if reviews availavle or not
     source_data = browser.page_source
 
@@ -78,12 +77,12 @@ def getReviewsDate(browser):
     number=(re.findall(r"\(\s*\+?(-?\d+)\s*\)", number)[0])
     
     if(int(number)<=0):
+        print('Review Not Available')
         return 'N/A'
-        
     
-    
-
-    
+    browser=removePopUp(browser)
+    check=0
+    click_rev=0
     while(True):
        try:
         #    button = browser.find_element_by_xpath("//button[@class='ncss-btn-primary-light mod-u-underline css-1nglku6']")
@@ -101,17 +100,24 @@ def getReviewsDate(browser):
                break
            
        except:
-           button = browser.find_element_by_xpath("//div[@class= 'css-1n9iiad']")
-           browser.execute_script("arguments[0].scrollIntoView()", button)
+           button_div = browser.find_element_by_xpath("//div[@class= 'css-1n9iiad']")
+           browser.execute_script("arguments[0].scrollIntoView()", button_div)
+           
+           button = browser.find_element_by_xpath("//details[@data-test= 'reviewsAccordionClick']")
            # print('Not Clicked')
            try:
                browser.implicitly_wait(10)
                ActionChains(browser).move_to_element(button).click(button).perform()
                print('clicked on Review Button')
+               click_rev+=1
+               if(click_rev>=3):
+                   break
            except:
-               # button.location_once_scrolled_into_view
-               # print("Couldn't Click on Any")
+               check+=1
+               
                print('Checking Again')
+               if(check==3):
+                   break
     
     
     # Load More Reviews
@@ -146,4 +152,15 @@ def getReviewsDate(browser):
      
     return dates    
 
-getSize('https://www.nike.com/t/sb-blazer-low-gt-skate-shoe-yKeNdm/704939-005')
+def removePopUp(browser):
+    try:
+        WebDriverWait(browser, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Close Menu"]'))).click()
+    except:
+        print('PopUp not found')
+    
+    return browser
+    
+
+# getSize('https://www.nike.com/t/air-max-genome-mens-shoe-hgsQFb/CW1648-002')
+# getSize('https://www.nike.com/t/zoomx-invincible-run-flyknit-mens-running-shoe-NgvDVX/CT2228-700')
+getSize('https://www.nike.com/t/blazer-mid-77-vintage-mens-shoe-nw30B2/BQ6806-110')
